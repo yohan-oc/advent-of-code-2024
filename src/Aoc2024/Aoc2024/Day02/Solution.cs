@@ -227,7 +227,7 @@
 
     public class Report
     {
-        public string Line { get; set; }
+        public required string Line { get; set; }
 
         public bool IsSafe { get; set; }
     }
