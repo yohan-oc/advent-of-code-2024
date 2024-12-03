@@ -6,13 +6,20 @@
         {
             string[] lines = File.ReadAllLines("Day02/input.txt");
 
-            var reportResult = new List<string>();
+            var reportResult = GenerateReport(lines);
+
+            Console.WriteLine("****************");
+            Console.WriteLine("Number of Safe reports: " + reportResult.Where(c => c.IsSafe).Count());
+            Console.WriteLine("Number of Unsafe reports: " + reportResult.Where(c => !c.IsSafe).Count());
+        }
+
+        static List<Report> GenerateReport(string[] lines)
+        {
+            var reportResult = new List<Report>();
 
             foreach (var line in lines)
             {
                 var numbers = line.Split(" ").ToList();
-
-                var levels = new Dictionary<int, int>();
 
                 bool isSafe = true;
 
@@ -24,6 +31,7 @@
                 if(firstLevelDifference == 0)
                 {
                     isSafe = false;
+                    reportResult.Add(new Report{ Line = line, IsSafe = false});
                 }
                 else if(firstLevelDifference > 0 && firstLevelDifference <= 3)
                 {
@@ -43,6 +51,7 @@
                         else
                         {
                             isSafe = false;
+                            reportResult.Add(new Report{ Line = line, IsSafe = false});
                             break;
                         }
                     }
@@ -65,6 +74,7 @@
                         else
                         {
                             isSafe = false;
+                            reportResult.Add(new Report{ Line = line, IsSafe = false});
                             break;
                         }
                     }
@@ -72,113 +82,154 @@
                 else
                 {
                     isSafe = false;
+                    reportResult.Add(new Report{ Line = line, IsSafe = false});
                 }
 
                 if(isSafe)
                 {
-                    reportResult.Add("Safe");
+                    //reportResult.Add("Safe");
+                    reportResult.Add(new Report{ Line = line, IsSafe = true});
                 }
-                else
-                {
-                    reportResult.Add("Unsafe");
-                }
+                // else
+                // {
+                //     //reportResult.Add("Unsafe");
+                //     reportResult.Add(new Report{ Line = line, IsSafe = false});
+                // }
             }
 
-            Console.WriteLine("****************");
-            Console.WriteLine("Number of Safe reports: " + reportResult.Where(c => c == "Safe").Count());
-            Console.WriteLine("Number of Unsafe reports: " + reportResult.Where(c => c == "Unsafe").Count());
+            return reportResult;
         }
 
         public static void Part02()
         {
-            string[] lines = File.ReadAllLines("Day02/testData.txt");
+            string[] lines = File.ReadAllLines("Day02/input.txt");
 
-            var reportResult = new List<string>();
+            var reportResult = GenerateReport(lines);
+
+            Console.WriteLine("****************");
+            Console.WriteLine("Number of Safe reports: " + reportResult.Where(c => c.IsSafe).Count());
+            Console.WriteLine("Number of Unsafe reports: " + reportResult.Where(c => !c.IsSafe).Count());
+
+            string[] unSafeLines = new string[reportResult.Where(c => !c.IsSafe).Count()];
+
+            int index = 0;
+            foreach(var report in reportResult.Where(c => !c.IsSafe).ToList())
+            {
+                unSafeLines[index] = report.Line;
+                index++;
+            }
+
+            var reportResultLevel2 = GenerateReportLevel2(unSafeLines);
+
+            Console.WriteLine("****************");
+            Console.WriteLine("Number of Safe re-evaluate reports: " + reportResultLevel2.Where(c => c.IsSafe).Count());
+
+            var total = reportResultLevel2.Where(c => c.IsSafe).Count() 
+            + reportResult.Where(c => c.IsSafe).Count();
+            Console.WriteLine("****************");
+            Console.WriteLine("Total number of Safe reports: " + total);
+        }
+
+        static List<Report> GenerateReportLevel2(string[] lines)
+        {
+            var reportResult = new List<Report>();
 
             foreach (var line in lines)
             {
                 var numbers = line.Split(" ").ToList();
 
-                var levels = new Dictionary<int, int>();
-
-                bool isSafe = true;
-
-                var firstNumber = Convert.ToInt32(numbers[0]);
-                var secondNumber = Convert.ToInt32(numbers[1]);
-
-                var firstLevelDifference = firstNumber - secondNumber;
-
-                if(firstLevelDifference == 0)
+                for(int x= 0; x < numbers.Count; x++)
                 {
-                    isSafe = false;
-                }
-                else if(firstLevelDifference > 0 && firstLevelDifference <= 3)
-                {
-                    var previousLevel = firstLevelDifference;
+                    var copiedNumbers = new List<string>(numbers);
+                    copiedNumbers.RemoveAt(x);
+                    bool isSafe = true;
 
-                    for (int i = 1; i < numbers.Count - 1; i++)
+                    var firstNumber = Convert.ToInt32(copiedNumbers[0]);
+                    var secondNumber = Convert.ToInt32(copiedNumbers[1]);
+
+                    var firstLevelDifference = firstNumber - secondNumber;
+
+                    if(firstLevelDifference == 0)
                     {
-                        var currentNumber = Convert.ToInt32(numbers[i]);
-                        var nextNumber = Convert.ToInt32(numbers[i + 1]);
-                        
-                        var currentLevel = currentNumber-nextNumber;
+                        isSafe = false;
+                        reportResult.Add(new Report{ Line = line, IsSafe = false});
+                    }
+                    else if(firstLevelDifference > 0 && firstLevelDifference <= 3)
+                    {
+                        var previousLevel = firstLevelDifference;
 
-                        if(currentLevel > 0 && currentLevel <= 3)
+                        for (int i = 1; i < copiedNumbers.Count - 1; i++)
                         {
-                            previousLevel = currentLevel;
-                        }
-                        else
-                        {
-                            isSafe = false;
-                            break;
+                            var currentNumber = Convert.ToInt32(copiedNumbers[i]);
+                            var nextNumber = Convert.ToInt32(copiedNumbers[i + 1]);
+                            
+                            var currentLevel = currentNumber-nextNumber;
+
+                            if(currentLevel > 0 && currentLevel <= 3)
+                            {
+                                previousLevel = currentLevel;
+                            }
+                            else
+                            {
+                                isSafe = false;
+                                reportResult.Add(new Report{ Line = line, IsSafe = false});
+                                break;
+                            }
                         }
                     }
-                }
-                else if(firstLevelDifference < 0 && firstLevelDifference >= -3)
-                {
-                    var previousLevel = firstLevelDifference;
-
-                    for (int i = 1; i < numbers.Count - 1; i++)
+                    else if(firstLevelDifference < 0 && firstLevelDifference >= -3)
                     {
-                        var currentNumber = Convert.ToInt32(numbers[i]);
-                        var nextNumber = Convert.ToInt32(numbers[i + 1]);
-                        
-                        var currentLevel = currentNumber-nextNumber;
+                        var previousLevel = firstLevelDifference;
 
-                        if(currentLevel < 0 && currentLevel >= -3)
+                        for (int i = 1; i < copiedNumbers.Count - 1; i++)
                         {
-                            previousLevel = currentLevel;
-                        }
-                        else
-                        {
-                            isSafe = false;
-                            break;
+                            var currentNumber = Convert.ToInt32(copiedNumbers[i]);
+                            var nextNumber = Convert.ToInt32(copiedNumbers[i + 1]);
+                            
+                            var currentLevel = currentNumber-nextNumber;
+
+                            if(currentLevel < 0 && currentLevel >= -3)
+                            {
+                                previousLevel = currentLevel;
+                            }
+                            else
+                            {
+                                isSafe = false;
+                                reportResult.Add(new Report{ Line = line, IsSafe = false});
+                                break;
+                            }
                         }
                     }
-                }
-                else
-                {
-                    isSafe = false;
-                }
+                    else
+                    {
+                        isSafe = false;
+                        reportResult.Add(new Report{ Line = line, IsSafe = false});
+                    }
 
-                if(isSafe)
-                {
-                    reportResult.Add("Safe");
+                    if(isSafe)
+                    {
+                        //reportResult.Add("Safe");
+                        reportResult.Add(new Report{ Line = line, IsSafe = true});
+                        break;
+                    }
+                    // else
+                    // {
+                    //     //reportResult.Add("Unsafe");
+                    //     reportResult.Add(new Report{ Line = line, IsSafe = false});
+                    // }
                 }
-                else
-                {
-                    reportResult.Add("Unsafe");
-                }
+                
             }
 
-            foreach (var report in reportResult)
-            {
-                Console.WriteLine(report);
-            }
-            Console.WriteLine("****************");
-            Console.WriteLine("Number of Safe reports: " + reportResult.Where(c => c == "Safe").Count());
-            Console.WriteLine("Number of Unsafe reports: " + reportResult.Where(c => c == "Unsafe").Count());
+            return reportResult;
         }
+    }
+
+    public class Report
+    {
+        public string Line { get; set; }
+
+        public bool IsSafe { get; set; }
     }
 }
 
