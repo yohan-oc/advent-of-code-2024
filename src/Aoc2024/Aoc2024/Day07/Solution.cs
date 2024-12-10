@@ -116,12 +116,12 @@ namespace Aoc2024.Day07
         
         public static void Part02()
         {
-            string[] lines = File.ReadAllLines("Day07/input.txt");
+            string[] lines = File.ReadAllLines("Day07/testData.txt");
 
-            int rowLengthIndex = lines.Length - 1;
-            int colLengthIndex = lines[0].Length - 1;
-
-            int max = 0;
+            Int64 rowLengthIndex = lines.Length - 1;
+            Int64 colLengthIndex = lines[0].Length - 1;
+            
+            var validCalibrations = new Dictionary<string, Int64>();
 
             foreach (var line in lines)
             {
@@ -131,14 +131,164 @@ namespace Aoc2024.Day07
                 
                 var numbers = values[1].Split(" ").Select(Int64.Parse).ToArray();
 
-                if (numbers.Length > max)
+                var numberOfOperators = numbers.Length - 1;
+                var totalCombinations = (int)Math.Pow(2, numbers.Length - 1);
+                
+                var operatorCombinations = new List<string>();
+
+                for (int i = 0; i < totalCombinations; i++)
                 {
-                    max = numbers.Length;
+                    string binary = Convert.ToString(i, 2).PadLeft(numberOfOperators, '0');
+                    string combination = binary.Replace('0', '+').Replace('1', '*');
+                    
+                    operatorCombinations.Add(combination);
+                }
+                
+                foreach (var combination in operatorCombinations)
+                {
+                    var operatorExpression = string.Join(" x ", numbers);
+                    int operatorIndex = 0;
+                    for(int i = 0; i < operatorExpression.Length - 1; i++)
+                    {
+                        if (operatorExpression[i] == 'x')
+                        {
+                            char[] additionChars = operatorExpression.ToCharArray();
+                            
+                            additionChars[i] = combination[operatorIndex];
+                            operatorExpression = new string(additionChars);
+                            operatorIndex++;
+                        }
+                    }
+                    var actualValue = EvaluateLeftToRight(operatorExpression);
+
+                    if (expectedResult == actualValue)
+                    {
+                        validCalibrations.TryAdd(line, expectedResult);
+                    }
+                }
+            }
+
+            // logic starts here
+            
+            var invalidCalibrations = new Dictionary<string, Int64>();
+            
+            var reEvaluatedCalibrations = new Dictionary<string, Int64>();
+
+            foreach (var line in lines)
+            {
+                if (!validCalibrations.ContainsKey(line))
+                {
+                    string[] values = line.Split(": ");
+                
+                    Int64 expectedResult = Int64.Parse(values[0]);
+                    invalidCalibrations.TryAdd(line, expectedResult);
                 }
             }
             
+            foreach (var calibration in invalidCalibrations)
+            {
+                string[] values = calibration.Key.Split(": ");
+                
+                Int64 expectedResult = Int64.Parse(values[0]);
+                
+                var numbers = values[1].Split(" ").Select(Int64.Parse).ToArray();
+
+                var numberOfOperators = numbers.Length - 1;
+                var totalCombinations = (int)Math.Pow(2, numbers.Length - 1);
+                
+                // var results = GenerateAllOutputs(values[1].Replace(" ", ""));
+                //
+                // foreach (var result in results)
+                // {
+                //     Console.WriteLine(result);
+                // }
+                // Console.WriteLine("-------------------");
+                // if (results.Count(c => c == expectedResult) == 1)
+                // {
+                //     reEvaluatedCalibrations.Add(calibration.Key, calibration.Value);
+                // }
+            }
             
-            Console.WriteLine("Hello Day 07: " + max);
+            Console.WriteLine("Count: " + reEvaluatedCalibrations.Count);
+            Console.WriteLine("Total: " + reEvaluatedCalibrations.Sum(c => c.Value));
+
+            Int64 total = 0;
+
+            foreach (var item in reEvaluatedCalibrations)
+            {
+                total = total + item.Value;
+            }
+            
+            Console.WriteLine("Cal: " + total);
+        }
+
+        public static void TestPart02()
+        {
+            int[] numbers = new int[] { 17, 8, 14 };
+
+            var results = BuildConcatenations(numbers);
+
+            foreach (var result in results)
+            {
+                Console.WriteLine(result);
+            }
+            //Console.WriteLine(result);
+        }
+
+        // static List<string> GetConcatenations(int[] numbers)
+        // {
+        //     List<string> results = new List<string>();
+        //
+        //     foreach (var number in numbers)
+        //     {
+        //         var comb1 = string.Join(" ", numbers);
+        //         
+        //         var comb2 = 
+        //     }
+        //     return results;
+        // }
+        
+        static List<string> BuildConcatenations(int[] numbers)
+        {
+            var results = new List<string>();
+            
+            if (numbers.Length == 2)
+            {
+                var baseResult = new List<string>();
+                
+                Console.WriteLine("Base result: " + string.Join("", numbers));
+                Console.WriteLine("Base result: " + EvaluateLeftToRight(string.Join(" + ", numbers)));
+                Console.WriteLine("Base result: " + EvaluateLeftToRight(string.Join(" * ", numbers)));
+                
+                baseResult.Add(string.Join("", numbers));
+                baseResult.Add(EvaluateLeftToRight(string.Join(" + ", numbers)).ToString());
+                baseResult.Add(EvaluateLeftToRight(string.Join(" * ", numbers)).ToString());
+                
+                return baseResult;
+            }
+            else
+            {
+                for (int i = 0; i< numbers.Length - 1 ; i++)
+                {
+                    var newArray = numbers.Skip(i).ToArray();
+                    var returnResult = BuildConcatenations(newArray);
+
+                    results.AddRange(returnResult);
+                    foreach (var result in returnResult)
+                    {
+                        Console.WriteLine("Return result: " + $"{numbers[0]}{result}");
+                        Console.WriteLine("Return result: " + EvaluateLeftToRight($"{numbers[0]} + {result}").ToString());
+                        Console.WriteLine("Return result: " + EvaluateLeftToRight($"{numbers[0]} * {result}").ToString());
+                    
+                        results.Add($"{numbers[0]}{result}");
+                        results.Add(EvaluateLeftToRight($"{numbers[0]} + {result}").ToString());
+                        results.Add(EvaluateLeftToRight($"{numbers[0]} * {result}").ToString());
+                    }
+                }
+                
+                
+            }
+            return results;
         }
     }
 }
