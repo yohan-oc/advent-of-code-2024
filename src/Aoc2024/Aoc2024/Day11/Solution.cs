@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Aoc2024.Day11
@@ -100,6 +101,88 @@ namespace Aoc2024.Day11
             results.Add(new Stone{ EngravedValue = newValue, RuleType = RuleType.Replace});
 
             return results;
+        }
+        
+        public static void Part02()
+        {
+            Console.WriteLine("**** Day 11 - Part 01 ****");
+            
+            string numbersString = File.ReadAllLines("Day11/input.txt")[0];
+            
+            int numberOfBlinks = 35;
+        
+            var numbers = numbersString.Split(" ").Select(Int64.Parse).ToList();
+
+            var orderedStones = new List<Int64>();
+
+            Int64 index = 0;
+            foreach (var number in numbers)
+            {
+                orderedStones.Add(number);
+            }
+
+            orderedStones = new List<Int64>(GetStones(orderedStones, numberOfBlinks));
+
+            var level1numberOfStones = orderedStones.Count;
+
+            var level1Size = 10;
+
+            int chunkSize = level1numberOfStones / level1Size;
+            
+            var level1stoneSet1 = new List<Int64>(orderedStones.Take(chunkSize).ToList());
+            
+            var level1stoneSet2 = new List<Int64>(orderedStones.Skip(chunkSize).Take(chunkSize).ToList());
+            
+            var level1stoneSet3 = new List<Int64>(orderedStones.Skip(chunkSize).Skip(chunkSize).Take(chunkSize).ToList());
+            
+            var level1stoneSet4 = new List<Int64>(orderedStones.Skip(chunkSize).Skip(chunkSize).Skip(chunkSize).Take(chunkSize).ToList());
+            
+            var level1stoneSet5 = new List<Int64>(orderedStones.Skip(chunkSize).Skip(chunkSize).Skip(chunkSize).Skip(chunkSize).ToList());
+
+            var level1newStones1 = new List<Int64>(GetStones(level1stoneSet1, level1Size));
+            
+            var level1newStones2 = new List<Int64>(GetStones(level1stoneSet2, level1Size));
+            
+            var level1newStones3 = new List<Int64>(GetStones(level1stoneSet3, level1Size));
+            
+            var level1newStones4 = new List<Int64>(GetStones(level1stoneSet4, level1Size));
+            
+            var level1newStones5 = new List<Int64>(GetStones(level1stoneSet5, level1Size));
+            
+            var totalCount = level1newStones1.Count + level1newStones2.Count + 
+                             level1newStones3.Count + level1newStones4.Count + + level1newStones5.Count;
+            
+            
+            
+            Console.WriteLine($"Blinks count: {numberOfBlinks + level1Size} -> Stone count: {totalCount}");
+        }
+
+        static List<Int64> GetStones(List<Int64> stones, int blinkSize)
+        {
+            var orderedStones = new List<Int64>(stones);
+            Int64 index = 0;
+            
+            for (int blink = 0; blink < blinkSize; blink++)
+            {
+                var finalStones = new List<Int64>();
+
+                foreach (var stone in orderedStones)
+                {
+                    var newStones = GetNewStonesByRules(stone);
+
+                    foreach (var newStone in newStones)
+                    {
+                        finalStones.Add(newStone.EngravedValue);
+                    }
+                }
+                
+                orderedStones = new List<Int64>(finalStones);
+
+                //PrintStones(orderedStones);
+                Console.WriteLine($"Counting blink {blink}");
+            }
+
+            return orderedStones;
         }
     }
 
