@@ -1,3 +1,3 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-Aoc2024.Day13.Solution.Part02();
+Aoc2024.Day12.Solution.Part01();
