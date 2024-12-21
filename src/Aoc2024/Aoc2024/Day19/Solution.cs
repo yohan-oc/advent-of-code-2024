@@ -35,7 +35,7 @@ namespace Aoc2024.Day19
                 }
             }
             
-            Console.WriteLine($"Total tokens:{possibleDesigns}");
+            Console.WriteLine($"Total :{possibleDesigns}");
         }
         
         static bool CanConstructDesign(string design, HashSet<string> patterns)
